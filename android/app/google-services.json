@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "300017926653",
+    "project_id": "pampershop-19f2b",
+    "storage_bucket": "pampershop-19f2b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300017926653:android:80cee69b6751e5a2145994",
+        "android_client_info": {
+          "package_name": "com.pampersshopapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYO2LR7wsVz9QIOE1zHuGFFTCRhvCDFUk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,28 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { firestore } from '../firebaseConfig'; // Adjust relative path if needed
+import { onSnapshot, doc } from 'firebase/firestore';
 
 type CardData = {
   title: string;
   value: string | number;
 };
 
-const cardData: CardData[] = [
-  { title: 'Total Stock Items', value: 128 },
-  { title: 'Low Stock Alerts', value: '3 Items' },
-  { title: "Today's Sales", value: 'Rs. 12,500' },
-];
-
 const DashboardScreen = () => {
+  const [cardData, setCardData] = useState<CardData[]>([
+    { title: 'Total Stock Items', value: 'Loading...' },
+    { title: 'Low Stock Alerts', value: 'Loading...' },
+    { title: "Today's Sales", value: 'Loading...' },
+  ]);
+
+  useEffect(() => {
+    // Subscribe to Firestore doc changes
+    const unsubscribe = onSnapshot(doc(firestore, 'dashboard', 'data'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setCardData([
+          { title: 'Total Stock Items', value: data?.totalStock ?? 'N/A' },
+          { title: 'Low Stock Alerts', value: `${data?.lowStockAlert ?? 'N/A'} Items` },
+          { title: "Today's Sales", value: `Rs. ${data?.todaysSales ?? 'N/A'}` },
+        ]);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
   const handleButtonPress = (action: string) => {
-    // TODO: Implement navigation or action handling
     console.log(`Pressed ${action} button`);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Welcome to Pampers Shop</Text>
+        <Text style={styles.title}>Dashboard</Text>
 
         {cardData.map((card, index) => (
           <View key={index} style={styles.card}>
@@ -56,11 +74,15 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     marginBottom: 20,
     color: '#1B5E20',
-    textAlign: 'center',
+    textAlign: 'left',
+    letterSpacing: 0.5,
+    borderBottomWidth: 2,
+    borderBottomColor: '#4CAF50',
+    paddingBottom: 10,
   },
   card: {
     backgroundColor: '#ffffff',
