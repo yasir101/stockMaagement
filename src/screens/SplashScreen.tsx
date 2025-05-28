@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
 
-const SPLASH_TIMEOUT = 2000;
+const MIN_SPLASH_TIME = 2000; // 2 seconds minimum display time
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -11,17 +12,32 @@ type Props = {
 
 const SplashScreen = ({ navigation }: Props) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Dashboard');
-    }, SPLASH_TIMEOUT);
+    const startTime = Date.now();
+    const auth = getAuth();
 
-    return () => clearTimeout(timer);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, MIN_SPLASH_TIME - elapsedTime);
+
+      setTimeout(() => {
+        if (user) {
+          navigation.replace('Dashboard');
+        } else {
+          navigation.replace('Login');
+        }
+      }, remainingTime);
+    });
+
+    return () => unsubscribe();
   }, [navigation]);
 
   return (
     <View style={styles.container}>
-      <Image source={require('../../assets/images/splashscreen.png')} style={styles.logo} resizeMode="contain" />
-      <ActivityIndicator size="large" color="#4CAF50" />
+      <Image
+        source={require('../../assets/images/splashscreen.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
     </View>
   );
 };
