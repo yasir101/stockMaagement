@@ -7,10 +7,14 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { auth } from '../firebaseConfig';
+import { theme } from '../theme';
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -20,6 +24,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -57,85 +63,198 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        editable={!isLoading}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        editable={!isLoading}
-      />
-
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleLogin}
-        disabled={isLoading}
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background.primary} />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
-      </TouchableOpacity>
+        <View style={styles.content}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <View style={styles.icon}>
+                <Text style={styles.iconText}>📦</Text>
+              </View>
+            </View>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to your account</Text>
+          </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Signup')} disabled={isLoading}>
-        <Text style={styles.linkText}>Don't have an account? Sign up</Text>
-      </TouchableOpacity>
-    </View>
+          {/* Form Section */}
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  emailFocused && styles.inputFocused,
+                  !emailFocused && email && styles.inputFilled,
+                ]}
+                placeholder="Enter your email"
+                placeholderTextColor={theme.colors.text.tertiary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!isLoading}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  passwordFocused && styles.inputFocused,
+                  !passwordFocused && password && styles.inputFilled,
+                ]}
+                placeholder="Enter your password"
+                placeholderTextColor={theme.colors.text.tertiary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!isLoading}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
+              activeOpacity={0.8}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={theme.colors.text.inverse} size="small" />
+              ) : (
+                <Text style={styles.buttonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Footer Section */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account?</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Signup')}
+              disabled={isLoading}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center', backgroundColor: '#E3F2FD' },
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background.primary,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.lg,
+    justifyContent: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: theme.spacing['2xl'],
+  },
+  iconContainer: {
+    marginBottom: theme.spacing.lg,
+  },
+  icon: {
+    width: 80,
+    height: 80,
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: theme.borderRadius['2xl'],
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.lg,
+  },
+  iconText: {
+    fontSize: 32,
+  },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 30,
-    color: '#1B5E20',
-    borderBottomWidth: 2,
-    borderBottomColor: '#4CAF50',
-    paddingBottom: 10,
+    fontSize: theme.typography.sizes['3xl'],
+    fontWeight: theme.typography.weights.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  form: {
+    marginBottom: theme.spacing.xl,
+  },
+  inputContainer: {
+    marginBottom: theme.spacing.lg,
+  },
+  inputLabel: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
   },
   input: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    color: '#000',
+    backgroundColor: theme.colors.background.secondary,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.text.primary,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  inputFocused: {
+    borderColor: theme.colors.primary[500],
+    backgroundColor: theme.colors.background.primary,
+    ...theme.shadows.sm,
+  },
+  inputFilled: {
+    backgroundColor: theme.colors.background.primary,
+    borderColor: theme.colors.neutral[200],
   },
   button: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: theme.colors.primary[500],
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: theme.spacing.lg,
+    ...theme.shadows.md,
   },
   buttonDisabled: {
-    backgroundColor: '#A5D6A7',
+    backgroundColor: theme.colors.neutral[300],
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
+    color: theme.colors.text.inverse,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.semibold,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  footerText: {
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.text.secondary,
   },
   linkText: {
-    color: '#4CAF50',
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.primary[500],
+    fontWeight: theme.typography.weights.semibold,
   },
 });
 
